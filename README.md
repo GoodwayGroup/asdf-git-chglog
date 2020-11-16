@@ -7,7 +7,7 @@
 ## Install
 
 ```
-asdf plugin-add yq https://github.com/GoodwayGroup/asdf-git-chglog.git
+asdf plugin-add git-chglog https://github.com/GoodwayGroup/asdf-git-chglog.git
 ```
 
 ## Use
