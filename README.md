@@ -1,2 +1,15 @@
 # asdf-git-chglog
-`git-chglog` plugin for `asdf`
+
+![](https://github.com/GoodwayGroup/asdf-git-chglog/workflows/test/badge.svg)
+
+[`git-chglog`](https://github.com/git-chglog/git-chglog) plugin for the [`asdf`](https://github.com/asdf-vm/asdf) version manager.
+
+## Install
+
+```
+asdf plugin-add yq https://github.com/GoodwayGroup/asdf-git-chglog.git
+```
+
+## Use
+
+Check out the [`asdf`](https://github.com/asdf-vm/asdf) readme for instructions on how to install and manage versions of `git-chglog`.
