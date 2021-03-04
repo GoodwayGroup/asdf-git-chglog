@@ -16,27 +16,77 @@ error_exit() {
   exit "${2:-1}"
 }
 
+function vercomp() {
+  clean1=$(echo "$1" | sed 's/v//g')
+  clean2=$(echo "$2" | sed 's/v//g')
+  if [[ $clean1 == $clean2 ]]; then
+    return 0
+  fi
+  local IFS=.
+  local i ver1=($clean1) ver2=($clean2)
+
+  # fill empty fields in ver1 with zeros
+  for ((i = ${#ver1[@]}; i < ${#ver2[@]}; i++)); do
+    ver1[i]=0
+  done
+
+  for ((i = 0; i < ${#ver1[@]}; i++)); do
+    if [[ -z ${ver2[i]} ]]; then
+      # fill empty fields in ver2 with zeros
+      ver2[i]=0
+    fi
+    if ((10#${ver1[i]} > 10#${ver2[i]})); then
+      return 1
+    fi
+    if ((10#${ver1[i]} < 10#${ver2[i]})); then
+      return 2
+    fi
+  done
+  return 0
+}
+
 install() {
   local -r install_type="$1"
   local -r install_version="$2"
   local -r install_path="$3"
   local -r install_path_bin="${install_path}/bin"
   local -r platform="$(uname | tr '[:upper:]' '[:lower:]')_amd64"
-  local -r download_url="${DOWNLOAD_BASE_URL}/${install_version}/${BINARY_NAME}_${platform}"
-  local -r download_path="${TMP_DOWNLOAD_DIR}/${BINARY_NAME}"
 
   [ "$install_type" != "version" ] && error_exit "Error: source installs are not supported"
 
-  echo "Downloading from ${download_url}"
-  if curl -fL -o "$download_path" "$download_url"; then
-    echo "Installing binary"
-    mkdir -p "$install_path_bin"
-    mv "$download_path" "${install_path_bin}/${BINARY_NAME}"
-    chmod +x "${install_path_bin}/${BINARY_NAME}"
+  vercomp "$install_version" "v0.10.0"
+  if [[ $? == 2 ]]; then
+    local -r download_url="${DOWNLOAD_BASE_URL}/${install_version}/${BINARY_NAME}_${platform}"
+    local -r download_path="${TMP_DOWNLOAD_DIR}/${BINARY_NAME}"
+
+    [ "$install_type" != "version" ] && error_exit "Error: source installs are not supported"
+
+    echo "Downloading from ${download_url}"
+    if curl -fL -o "$download_path" "$download_url"; then
+      echo "Installing binary"
+      mkdir -p "$install_path_bin"
+      mv "$download_path" "${install_path_bin}/${BINARY_NAME}"
+      chmod +x "${install_path_bin}/${BINARY_NAME}"
+    else
+      error_exit "Error: ${BINARY_NAME} version ${install_version} not found"
+    fi
   else
-    error_exit "Error: ${BINARY_NAME} version ${install_version} not found"
+    # new install
+    local -r clean_version="$(printf '%s' "$install_version" | sed 's/v//g')"
+    local -r download_url="${DOWNLOAD_BASE_URL}/${install_version}/${BINARY_NAME}_${clean_version}_${platform}.tar.gz"
+    local -r download_path="${TMP_DOWNLOAD_DIR}/${BINARY_NAME}"
+
+    echo "Downloading from ${download_url}"
+    if curl -fL -o "${download_path}.tar.gz" "$download_url"; then
+      echo "Untar and export"
+      tar zxvf "${download_path}.tar.gz" &>/dev/null
+
+      echo "Installing binary"
+      mkdir -p "$install_path_bin"
+      mv "$download_path" "${install_path_bin}/${BINARY_NAME}"
+      chmod +x "${install_path_bin}/${BINARY_NAME}"
+    else
+      error_exit "Error: ${BINARY_NAME} version ${install_version} not found"
+    fi
   fi
 }
-
-#
-install "$ASDF_INSTALL_TYPE" "$ASDF_INSTALL_VERSION" "$ASDF_INSTALL_PATH"
