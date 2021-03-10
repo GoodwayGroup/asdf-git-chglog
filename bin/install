@@ -79,7 +79,7 @@ install() {
     echo "Downloading from ${download_url}"
     if curl -fL -o "${download_path}.tar.gz" "$download_url"; then
       echo "Untar and export"
-      tar zxvf "${download_path}.tar.gz" &>/dev/null
+      tar zxvf "${download_path}.tar.gz" &> /dev/null
 
       echo "Installing binary"
       mkdir -p "$install_path_bin"
@@ -90,3 +90,5 @@ install() {
     fi
   fi
 }
+
+install "$ASDF_INSTALL_TYPE" "$ASDF_INSTALL_VERSION" "$ASDF_INSTALL_PATH"
