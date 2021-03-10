@@ -73,20 +73,24 @@ install() {
   else
     # new install
     local -r clean_version="$(printf '%s' "$install_version" | sed 's/v//g')"
-    local -r download_url="${DOWNLOAD_BASE_URL}/${install_version}/${BINARY_NAME}_${clean_version}_${platform}.tar.gz"
+    local -r download_url="${DOWNLOAD_BASE_URL}/v${clean_version}/${BINARY_NAME}_${clean_version}_${platform}.tar.gz"
     local -r download_path="${TMP_DOWNLOAD_DIR}/${BINARY_NAME}"
 
     echo "Downloading from ${download_url}"
     if curl -fL -o "${download_path}.tar.gz" "$download_url"; then
       echo "Untar and export"
-      tar zxvf "${download_path}.tar.gz" &>/dev/null
+      tar zxvf "${download_path}.tar.gz" -C "$TMP_DOWNLOAD_DIR" &> /dev/null
 
       echo "Installing binary"
       mkdir -p "$install_path_bin"
       mv "$download_path" "${install_path_bin}/${BINARY_NAME}"
       chmod +x "${install_path_bin}/${BINARY_NAME}"
+      final_version=$("${install_path_bin}"/${BINARY_NAME} --version)
+      echo "Complete: $final_version"
     else
       error_exit "Error: ${BINARY_NAME} version ${install_version} not found"
     fi
   fi
 }
+
+install "$ASDF_INSTALL_TYPE" "$ASDF_INSTALL_VERSION" "$ASDF_INSTALL_PATH"
