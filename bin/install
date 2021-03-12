@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-set -o errexit
 set -o nounset
 set -o pipefail
 
@@ -58,8 +57,6 @@ install() {
   if [[ $? == 2 ]]; then
     local -r download_url="${DOWNLOAD_BASE_URL}/${install_version}/${BINARY_NAME}_${platform}"
     local -r download_path="${TMP_DOWNLOAD_DIR}/${BINARY_NAME}"
-
-    [ "$install_type" != "version" ] && error_exit "Error: source installs are not supported"
 
     echo "Downloading from ${download_url}"
     if curl -fL -o "$download_path" "$download_url"; then
